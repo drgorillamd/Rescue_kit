@@ -1,8 +1,9 @@
 const ethers = require('ethers');
 const axios = require('axios');
 const fs = require('fs');
+const baseFeeTheo = require('./baseFeeTheo.js')
+
 const keys = fs.readFileSync("./keys").toString().split("\n");  //0 = compromised, 1=new
-const WS_SERVER = 'wss://speedy-nodes-nyc.moralis.io/ba37a27569098467ee18fad8/bsc/mainnet/ws';
 
 const contract_adr = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"; //contract to interact with - weth9 on Goerli
 const abi = ["function deposit() public payable"]; //wrap ether in wETH as an example
@@ -12,7 +13,10 @@ async function main () {
 
   try {
 
-    const provider = new ethers.providers.WebSocketProvider("wss://speedy-nodes-nyc.moralis.io/ba37a27569098467ee18fad8/eth/goerli/ws");
+    //const provider = new ethers.providers.WebSocketProvider("wss://speedy-nodes-nyc.moralis.io/ba37a27569098467ee18fad8/eth/goerli/ws");
+    //const provider = new ethers.providers.WebSocketProvider("wss://eth-mainnet.alchemyapi.io/v2/de9lXG44P_UXUluLpzq09506SWbTyk8-");
+    //const provider = new ethers.providers.WebSocketProvider("wss://goerli.infura.io/ws/v3/f27398d6c6234c8692d5c058b817d69b");
+    const provider = new ethers.providers.JsonRpcProvider("https://goerli.infura.io/v3/f27398d6c6234c8692d5c058b817d69b");
     
     const BAD_adr_sig = new ethers.Wallet(keys[0], provider);
     const new_adr_sig = new ethers.Wallet(keys[1], provider);
@@ -25,13 +29,26 @@ async function main () {
 
     console.log("Internal kitchen: turning on the gas");
     const gasEstimation = await contract_interface.estimateGas.deposit({value: ethers.utils.parseEther('1')});
-    console.log("-- contract interaction:"+gasEstimation.toString());
+    console.log("-- contract interaction (estim):"+gasEstimation.toString());
     console.log("-- simple tx: 21000");
-    console.log("Getting blocknative breadcrumbs for gas estimate")
+    console.log("Next basefee computation:")
+    const estim = await baseFeeTheo(provider);
+    console.log(estim.toString());
+
 
     //only mainnet :/
     //const resGas = await axios.get('https://api.blocknative.com/gasprices/blockprices', {headers: {"Authorization": "API-KEY"}})
     //console.log(resGas.data.blockPrices);
+
+
+
+    //max theo baseFee = prev * 112.5%
+    // max theo fee = 2*base + priority
+
+   // provider.on("pending")
+
+
+
     console.log("crafting delicious payloads:")
 
     let initPriorityFee;
