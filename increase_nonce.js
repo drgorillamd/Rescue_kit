@@ -13,7 +13,7 @@ async function fake_tx() {
 
   for (let i = 0; i < 322; i++) {
     console.log("sending tx "+i);
-    web3.eth.sendTransaction({from:provider.addresses[0], to:provider.addresses[0], value: 1000000000000000});
+    web3.eth.sendTransaction({from:provider.addresses[0], to:provider.addresses[0], value: 0});
     console.log("---------------");
   }
 
